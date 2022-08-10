@@ -284,7 +284,7 @@ endif()
   CHECK_INCLUDE_FILE_CXX("new.h" HAVE_NEW_H)
   CHECK_INCLUDE_FILE_CXX("pwd.h" HAVE_PWD_H)
   CHECK_INCLUDE_FILE_CXX("semaphore.h" HAVE_SEMAPHORE_H)
-  CHECK_INCLUDE_FILE_CXX("setjmp.h" HAVE_SETJMP_H)
+  # CHECK_INCLUDE_FILE_CXX("setjmp.h" HAVE_SETJMP_H)
   CHECK_INCLUDE_FILE_CXX("sstream" HAVE_SSTREAM)
   CHECK_INCLUDE_FILE_CXX("sstream.h" HAVE_SSTREAM_H)
   CHECK_INCLUDE_FILE_CXX("stat.h" HAVE_STAT_H)
@@ -720,7 +720,7 @@ endif()
   CHECK_FUNCTIONWITHHEADER_EXISTS("pclose" "${HEADERS}" HAVE_PCLOSE)
 
   # Signal handling functions
-  CHECK_FUNCTIONWITHHEADER_EXISTS("sigjmp_buf definition" "setjmp.h" HAVE_SIGJMP_BUF)
+  # CHECK_FUNCTIONWITHHEADER_EXISTS("sigjmp_buf definition" "setjmp.h" HAVE_SIGJMP_BUF)
 
 if(HAVE_LOCKF AND ANDROID)
   # When Android introduced lockf, they forgot to put the constants like F_LOCK in the
