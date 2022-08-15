@@ -2828,7 +2828,7 @@ extern "C" {
 OFString OFStandard::getHostnameByAddress(const char* addr, int len, int type)
 {
   OFString result;
-
+#ifndef __wasi__
 #ifdef HAVE_GETADDRINFO
   // We have getaddrinfo(). In this case we also presume that we have
   // getnameinfo(), since both functions were introduced together.
@@ -2890,6 +2890,7 @@ OFString OFStandard::getHostnameByAddress(const char* addr, int len, int type)
   if (he && he->h_name) result = he->h_name;
 
 #endif
+#endif // __wasi__
   return result;
 }
 
@@ -2899,6 +2900,7 @@ void OFStandard::getAddressByHostname(const char *name, OFSockAddr& result)
   result.clear();
   if (NULL == name) return;
 
+#ifndef __wasi__
 #ifdef HAVE_GETADDRINFO
   struct addrinfo *result_list = NULL;
   int err = EAI_AGAIN;
@@ -2975,6 +2977,7 @@ void OFStandard::getAddressByHostname(const char *name, OFSockAddr& result)
 #endif
 
 #endif // HAVE_GETADDRINFO
+#endif // __wasi__
 
 }
 
