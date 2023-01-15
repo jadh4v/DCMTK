@@ -1422,11 +1422,16 @@ function(INSPECT_FUNDAMENTAL_ARITHMETIC_TYPES)
       endif()
     endif()
     if(NOT DEFINED DCMTK_NO_TRY_RUN)
+      # As of wasi-sdk-19, exceptions are not supported
+      set(wasi_args)
+      if(WASI)
+	    set(wasi_args -fno-exceptions)
+      endif()
       DCMTK_TRY_RUN(
         RESULT COMPILED
         "${DCMTK_BINARY_DIR}/CMakeTmp/Arith"
         "${DCMTK_SOURCE_DIR}/config/tests/arith.cc"
-        COMPILE_DEFINITIONS -I"${DCMTK_BINARY_DIR}/config/include" -I"${DCMTK_SOURCE_DIR}/ofstd/include" -I"${DCMTK_SOURCE_DIR}/ofstd/libsrc"
+        COMPILE_DEFINITIONS -I"${DCMTK_BINARY_DIR}/config/include" -I"${DCMTK_SOURCE_DIR}/ofstd/include" -I"${DCMTK_SOURCE_DIR}/ofstd/libsrc" ${wasi_args}
         RUN_OUTPUT_VARIABLE OUTPUT
         COMPILE_OUTPUT_VARIABLE CERR
       )
