@@ -43,6 +43,8 @@
 #include "dcmtk/dcmpstat/dvpstx.h"      /* for DVPSTextObject, needed by MSVC5 with STL */
 #include "dcmtk/dcmpstat/dvpsgr.h"      /* for DVPSGraphicObject, needed by MSVC5 with STL */
 
+#include "dcmtk/dcmiod/modimagepixel.h" /* for IODImagePixelModule, needed for ICCProfile reading */
+
 OFLogger DCM_dcmpstatLogger = OFLog::getLogger("dcmtk.dcmpstat");
 OFLogger DCM_dcmpstatDumpLogger = OFLog::getLogger("dcmtk.dcmpstat.dump");
 OFLogger DCM_dcmpstatLogfileLogger = OFLog::getLogger("dcmtk.dcmpstat.logfile");
@@ -316,11 +318,12 @@ OFCondition DcmPresentationState::read(DcmItem &dset)
     DCMPSTAT_WARN("Modality VM != 1 in presentation state");
   }
 
-  sopclassuid.getOFString(aString,0);
-  if (aString != UID_GrayscaleSoftcopyPresentationStateStorage)
+  OFString pstateType;
+  sopclassuid.getOFString(pstateType,0);
+  if (pstateType != UID_GrayscaleSoftcopyPresentationStateStorage && pstateType != UID_ColorSoftcopyPresentationStateStorage)
   {
     result=EC_IllegalCall;
-    DCMPSTAT_WARN("SOP Class UID does not match GrayscaleSoftcopyPresentationStateStorage");
+    DCMPSTAT_WARN("SOP Class UID does not match ColorSoftcopyPresentationStateStorage or GrayscaleSoftcopyPresentationStateStorage");
   }
 
   modality.getOFString(aString,0);
@@ -371,6 +374,14 @@ OFCondition DcmPresentationState::read(DcmItem &dset)
     READ_FROM_DATASET(DcmDecimalString, EVR_DS, rescaleIntercept)
     READ_FROM_DATASET(DcmDecimalString, EVR_DS, rescaleSlope)
     READ_FROM_DATASET(DcmLongString, EVR_LO, rescaleType)
+  }
+
+  // Fetch ICC Profile if it exists
+  if (result == EC_Normal)
+  {
+      IODImagePixelModule<Uint16> iodImagePixelModule;
+      iodImagePixelModule.read(dset);
+      iodImagePixelModule.getICCProfile(iccProfile);
   }
 
   /* read Modality LUT Sequence */
@@ -424,7 +435,7 @@ OFCondition DcmPresentationState::read(DcmItem &dset)
   if (result==EC_Normal) result = graphicAnnotationList.read(dset);
   if (result==EC_Normal) result = displayedAreaSelectionList.read(dset);
   if (result==EC_Normal) result = softcopyVOIList.read(dset);
-  if (result==EC_Normal) result = presentationLUT.read(dset, OFFalse);
+  if (result==EC_Normal && pstateType != UID_ColorSoftcopyPresentationStateStorage) result = presentationLUT.read(dset, OFFalse);
 
   /* Now perform basic sanity checks and adjust use flags */
 
@@ -459,12 +470,9 @@ OFCondition DcmPresentationState::read(DcmItem &dset)
     DCMPSTAT_WARN("displayedAreaSelectionSQ absent or empty in presentation state");
   }
 
-  if (imageNumber.getLength() == 0)
-  {
-    result=EC_IllegalCall;
-    DCMPSTAT_WARN("instanceNumber absent or empty in presentation state");
-  }
-  else if (imageNumber.getVM() != 1)
+  // InstanceNumber (0020,0013) is optional for presentation states.
+  // If it is present, value multiplicity should be 1.
+  if (imageNumber.getLength() != 0 && imageNumber.getVM() != 1)
   {
     result=EC_IllegalCall;
     DCMPSTAT_WARN("instanceNumber VM != 1 in presentation state");

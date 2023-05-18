@@ -275,6 +275,10 @@ public:
    */
   DVPSPresentationLUT *getPresentationLUTData() { return &presentationLUT; }
 
+  /** gets the iccProfile buffer as a vector of Uint
+  */
+  OFVector<Uint8> getICCProfile() { return iccProfile; }
+
   /* Rotate/Flip Interface */
 
   /** gets the current rotation status of the presentation state.
@@ -974,6 +978,10 @@ protected:
    */
   /// Module=Softcopy_VOI_LUT, VR=SQ, Card=1-n, Type 1
   DVPSSoftcopyVOI_PList    softcopyVOIList;
+
+  /* Module: ICC Profile
+  */
+  OFVector<Uint8> iccProfile;
 
 };
 

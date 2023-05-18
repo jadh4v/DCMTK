@@ -34,6 +34,7 @@
 #include "dcmtk/dcmimgle/dimo2img.h"
 #include "dcmtk/dcmimgle/didocu.h"
 #include "dcmtk/dcmimgle/diregbas.h"
+#include "dcmtk/dcmimage/dirgbimg.h"
 #include "dcmtk/dcmimgle/diplugin.h"
 #include "dcmtk/dcmdata/dcdicent.h"  /* needed by MSVC5 */
 
@@ -190,8 +191,24 @@ void DicomImage::Init()
         }
         else if (Document->getFlags() & CIF_UsePresentationState)
         {
-            PhotometricInterpretation = EPI_Monochrome2;            // default for presentation states
-            Image = new DiMono2Image(Document, ImageStatus);
+            OFString photometricType = Document->getPhotometricInterpretation();
+            if (photometricType == "RGB")
+            {
+                PhotometricInterpretation = EPI_RGB;
+                Image = new DiRGBImage(Document, ImageStatus);
+            }
+            else if (photometricType == "MONOCHROME2" || photometricType == "MONOCHROME 2")
+            {
+                PhotometricInterpretation = EPI_Monochrome2;    // default for presentation states
+                Image = new DiMono2Image(Document, ImageStatus);
+            }
+            else
+            {
+                DCMIMGLE_WARN("Unsupported PhotometricInterpretation (" << photometricType << ") for presentation states, will attempt to use MONOCHROME2.");
+                PhotometricInterpretation = EPI_Monochrome2;    // default for presentation states
+                Image = new DiMono2Image(Document, ImageStatus);
+            }
+            // Image = new DiMono2Image(Document, ImageStatus);
         }
         else if (strlen(str = Document->getPhotometricInterpretation()) > 0)
         {

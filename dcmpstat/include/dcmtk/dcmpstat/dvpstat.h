@@ -845,6 +845,13 @@ public:
     */
    OFCondition invertImage();
 
+   /** write rendered color image to BMP file.
+   */
+   OFCondition writeBMP(
+     const char* filename,
+     const int bits = 0,
+     const unsigned long frame = 0);
+
    /** applies presentation state to attached image and returns image bitmap.
     *  This method sets all parameter required to correctly render the pixel data
     *  in the image attached to the presentation state and then creates the

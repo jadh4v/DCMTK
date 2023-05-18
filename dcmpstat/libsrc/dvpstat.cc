@@ -1822,6 +1822,22 @@ OFCondition DVPresentationState::invertImage()
   return status;
 }
 
+OFCondition DVPresentationState::writeBMP(
+    const char *filename,
+    const int bits,
+    const unsigned long frame)
+{
+   if (currentImage)
+   {
+     // Update this function to apply colorProfile for CSPS presentation states.
+     renderPixelData();
+     currentImage->writeBMP(filename, bits, currentImageSelectedFrame-1);
+   } else {
+     return EC_IllegalCall;
+   }
+   return EC_Normal;
+}
+
 
 OFCondition DVPresentationState::getPixelData(
      const void *&pixelData,
@@ -1830,6 +1846,7 @@ OFCondition DVPresentationState::getPixelData(
 {
    if (currentImage)
    {
+     // Update this function to apply colorProfile for CSPS presentation states.
      renderPixelData();
      width = currentImage->getWidth();
      height = currentImage->getHeight();

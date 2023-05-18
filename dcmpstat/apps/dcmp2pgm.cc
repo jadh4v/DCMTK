@@ -84,6 +84,17 @@ static void dumpPresentationState(DVPresentationState &ps)
   }
   else oss << "none" << OFendl;
 
+  oss << "ICC color Profile: ";
+  auto iccProfile = ps.getICCProfile();
+  if (iccProfile.empty())
+  {
+      oss << "Not present." << OFendl;
+  }
+  else
+  {
+      oss << "is present. Size in bytes = " << iccProfile.size() << OFendl;
+  }
+
   oss << "Rotation: ";
   switch (ps.getRotation())
   {
@@ -419,7 +430,8 @@ static void dumpPresentationState(DVPresentationState &ps)
 int main(int argc, char *argv[])
 {
     OFBool opt_dump_pstate     = OFFalse;                 /* default: do not dump presentation state */
-    OFBool opt_dicom_mode      = OFFalse;                 /* default: create PGM, not DICOM SC */
+    OFBool opt_dicom_mode      = OFFalse;                 /* create DICOM SC */
+    OFBool opt_pgm_mode        = OFFalse;                 /* create PGM */
     OFCmdUnsignedInt opt_frame = 1;                       /* default: first frame */
     const char *opt_pstName    = NULL;                    /* pstate read file name */
     const char *opt_imgName    = NULL;                    /* image read file name */
@@ -487,7 +499,7 @@ int main(int argc, char *argv[])
       if (cmd.findOption("--pstate"))      app.checkValue(cmd.getValue(opt_pstName));
       if (cmd.findOption("--config"))      app.checkValue(cmd.getValue(opt_cfgName));
       if (cmd.findOption("--frame"))       app.checkValue(cmd.getValueAndCheckMin(opt_frame, 1));
-      if (cmd.findOption("--pgm"))         opt_dicom_mode = OFFalse;
+      if (cmd.findOption("--pgm"))         opt_pgm_mode = OFTrue;
       if (cmd.findOption("--dicom"))       opt_dicom_mode = OFTrue;
       if (cmd.findOption("--save-pstate")) app.checkValue(cmd.getValue(opt_savName));
     }
@@ -528,6 +540,7 @@ int main(int argc, char *argv[])
             OFLOG_DEBUG(dcmp2pgmLogger, "creating pixel data");
             if ((opt_frame > 0) && (dvi.getCurrentPState().selectImageFrameNumber(opt_frame) != EC_Normal))
                OFLOG_ERROR(dcmp2pgmLogger, "cannot select frame " << opt_frame);
+
             if ((dvi.getCurrentPState().getPixelData(pixelData, width, height) == EC_Normal) && (pixelData != NULL))
             {
               if (opt_dicom_mode)
@@ -538,7 +551,9 @@ int main(int argc, char *argv[])
                 {
                   OFLOG_ERROR(dcmp2pgmLogger, "error during creation of DICOM file");
                 }
-              } else {
+              }
+              else if (opt_pgm_mode)
+              {
                 FILE *outfile = fopen(opt_pgmName, "wb");
                 if (outfile)
                 {
@@ -550,6 +565,13 @@ int main(int argc, char *argv[])
                 } else {
                     OFLOG_FATAL(dcmp2pgmLogger, "Can't create output file.");
                     return 10;
+                }
+              } else {
+                // Attempt to write output color image as BMP
+                OFLOG_DEBUG(dcmp2pgmLogger, "writing image in BMP format: " << opt_pgmName);
+                if (dvi.getCurrentPState().writeBMP(opt_pgmName) != EC_Normal)
+                {
+                  OFLOG_ERROR(dcmp2pgmLogger, "cannot write BMP file ");
                 }
               }
             } else {
