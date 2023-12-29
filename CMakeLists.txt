@@ -9,7 +9,9 @@ project(DCMTK)
 #-----------------------------------------------------------------------------
 
 # Modules to be built
-set(DCMTK_MODULES ofstd oflog dcmdata dcmimgle dcmimage dcmsr dcmpstat dcmnet dcmqrdb dcmsign dcmtls dcmiod
+set(DCMTK_MODULES ofstd oflog dcmdata dcmimgle dcmimage
+    dcmsr dcmpstat dcmnet dcmqrdb dcmsign dcmtls dcmiod
+    dcmfg
   CACHE STRING "List of modules that should be built.")
 
 # Provide an interface target to elegantly include the config directory
